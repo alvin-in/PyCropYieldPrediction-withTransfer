@@ -606,12 +606,12 @@ class RunTask:
                     times,
                     p_year,
                     num_runs=1,
-                    train_steps=trial.suggest_int("train_steps", 10000, 50000, 1000),
+                    train_steps=trial.suggest_int("train_steps", 5000, 50000, 1000),
                     batch_size=32,
-                    starter_learning_rate=trial.suggest_float("learning_rate", 1e-6, 1e-2),
+                    starter_learning_rate=trial.suggest_float("learning_rate", 1e-5, 1e-2),
                     weight_decay=trial.suggest_int("weighty_decay", 0, 1),
                     l1_weight=0,  # trial.suggest_int("l1_weight", 0, 1),
-                    patience=trial.suggest_int("patience", 0, 50),
+                    patience=10,    # trial.suggest_int("patience", 0, 40),
                     ret=True,
                     kfold=True
                 )

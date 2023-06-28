@@ -384,10 +384,10 @@ class TransferBase:
                 kf = KFold(n_splits=10, random_state=42, shuffle=True)
                 kf.get_n_splits(X=range(total_size))
 
-                if self.gp is not None:
-                    all_results = (0, 0, 0, 0, 0, 0)
-                else:
-                    all_results = (0, 0, 0)
+                #if self.gp is not None:
+                #    all_results = (0, 0, 0, 0, 0, 0)
+                #else:
+                all_results = None
 
                 for i, (train_indices, test_indices) in enumerate(kf.split(X=range(total_size))):
 
@@ -473,12 +473,12 @@ class TransferBase:
                         model_information["test_pred_gp"] if self.gp is not None else None,
                     )
 
-                    for j in range(len(results)):
-                        all_results[j] += results[j]
+                    if all_results is None:
+                        all_results = results
+                    else:
+                        all_results = tuple(map(lambda j, k: j + k, all_results, results))
 
-                for j in range(len(all_results)):
-                    all_results[j] /= 10
-
+                all_results = tuple(map(lambda j: j/10, all_results))
                 return all_results
 
         else:

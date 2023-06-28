@@ -316,10 +316,7 @@ class ModelBase:
                 kf = KFold(n_splits=10, random_state=42, shuffle=True)
                 kf.get_n_splits(X=range(total_size))
 
-                if self.gp is not None:
-                    all_results = (0, 0, 0, 0, 0, 0)
-                else:
-                    all_results = (0, 0, 0)
+                all_results = None
 
                 for i, (train_indices, test_indices) in enumerate(kf.split(X=range(total_size))):
 
@@ -351,10 +348,7 @@ class ModelBase:
                     wandb.log({"train_loss" + str(predict_year): pdts})
                     wandb.log({"val_loss" + str(predict_year): pdvs})
 
-                    if ret:
-                        results = self._predict_opt(train_dataset, val_dataset, batch_size)
-                    else:
-                        results = self._predict(*train_data, *test_data, batch_size)
+                    results = self._predict_opt(train_dataset, val_dataset, batch_size)
 
                     model_information = {
                         "state_dict": self.model.state_dict(),
@@ -392,12 +386,18 @@ class ModelBase:
                     filename = f'{predict_year}_{run_number}_{time}_{"gp" if (self.gp is not None) else ""}.pth.tar'
                     torch.save(model_information, self.savedir / filename)
 
-                    for j in range(len(results)):
-                        all_results[j] += results[j]
+                    results = self.analyze_results(
+                        model_information["test_real"],
+                        model_information["test_pred"],
+                        model_information["test_pred_gp"] if self.gp is not None else None,
+                    )
 
-                for j in range(len(all_results)):
-                    all_results[j] /= 10
+                    if all_results is None:
+                        all_results = results
+                    else:
+                        all_results = tuple(map(lambda j, k: j + k, all_results, results))
 
+                all_results = tuple(map(lambda j: j / 10, all_results))
                 return all_results
 
         else:
@@ -513,7 +513,7 @@ class ModelBase:
             weight_decay=weight_decay,
         )
 
-        num_epochs = int(train_steps / (train_images.shape[0] / batch_size))
+        num_epochs = int(train_steps / (len(list(train_dataset)) / batch_size))
         print(f"Training for {num_epochs} epochs")
         wandb.config = {"total_epochs": num_epochs}
 
@@ -755,6 +755,99 @@ class ModelBase:
             if key in [
                 "train_feat",
                 "test_feat",
+            ]:
+                results[key] = np.concatenate(results[key], axis=0)
+            else:
+                results[key] = np.array(results[key])
+        return results
+
+    def _predict_opt2(
+            self,
+            train_data,
+            train_ind,
+            test_ind,
+            batch_size,
+            # results=None
+    ):
+        """
+        Predict on the training and validation data. Optionally, return the last
+        feature vector of the model.
+        """
+        train_images = train_data.images[train_ind]
+        train_yields = train_data.yields[train_ind]
+        train_locations = train_data.locations[train_ind]
+        train_indices = train_data.indices[train_ind]
+        train_years = train_data.years[train_ind]
+
+        train_dataset = TensorDataset(
+            train_images, train_yields, train_locations, train_indices, train_years
+        )
+
+        test_images = train_data.images[test_ind]
+        test_yields = train_data.yields[test_ind]
+        test_locations = train_data.locations[test_ind]
+        test_indices = train_data.indices[test_ind]
+        test_years = train_data.years[test_ind]
+
+        test_dataset = TensorDataset(
+            test_images, test_yields, test_locations, test_indices, test_years
+        )
+
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
+
+        results = defaultdict(list)
+        # if results is None:
+        #     results = defaultdict(list)
+
+        self.model.eval()
+        with torch.no_grad():
+            for train_im, train_yield, train_loc, train_idx, train_year in tqdm(
+                    train_dataloader
+            ):
+                model_output = self.model(
+                    train_im, return_last_dense=True if (self.gp is not None) else False
+                )
+                if self.gp is not None:
+                    pred, _feature_map, feat, _layer_outputs_source = model_output
+                    if feat.device != "cpu":
+                        feat = feat.cpu()
+                    results["train_feat"].append(feat.numpy())
+                else:
+                    pred, _feature_map, _layer_outputs_source = model_output
+                results["train_pred"].extend(pred.squeeze(1).tolist())
+                results["train_real"].extend(train_yield.squeeze(1).tolist())
+                results["train_loc"].append(train_loc.numpy())
+                results["train_indices"].append(train_idx.numpy())
+                results["train_years"].extend(train_year.tolist())
+
+            for test_im, test_yield, test_loc, test_idx, test_year in tqdm(
+                    test_dataloader
+            ):
+                model_output = self.model(
+                    test_im, return_last_dense=True if (self.gp is not None) else False
+                )
+                if self.gp is not None:
+                    pred, _feature_map, feat, _layer_output_target = model_output
+                    if feat.device != "cpu":
+                        feat = feat.cpu()
+                    results["test_feat"].append(feat.numpy())
+                else:
+                    pred, _feature_map, _layer_output_target = model_output
+                results["test_pred"].extend(pred.squeeze(1).tolist())
+                results["test_real"].extend(test_yield.squeeze(1).tolist())
+                results["test_loc"].append(test_loc.numpy())
+                results["test_indices"].append(test_idx.numpy())
+                results["test_years"].extend(test_year.tolist())
+
+        for key in results:
+            if key in [
+                "train_feat",
+                "test_feat",
+                "train_loc",
+                "test_loc",
+                "train_indices",
+                "test_indices",
             ]:
                 results[key] = np.concatenate(results[key], axis=0)
             else:
