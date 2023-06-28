@@ -512,6 +512,7 @@ class RunTask:
                     l2_sp_beta=0,  # trial.suggest_float("l2_sp_beta", 0, 1),
                     bss=trial.suggest_float("bss", 0, 1),  # 0.412,  # trial.suggest_float("bss", 0, 1),
                     bss_k=1,  # 1     # trial.suggest_int("bss_k", 0, 32)
+                    kfold=True
                 )
 
                 return rmse  # , rsq
@@ -611,7 +612,8 @@ class RunTask:
                     weight_decay=trial.suggest_int("weighty_decay", 0, 1),
                     l1_weight=0,  # trial.suggest_int("l1_weight", 0, 1),
                     patience=trial.suggest_int("patience", 0, 50),
-                    ret=True
+                    ret=True,
+                    kfold=True
                 )
 
                 study.trials_dataframe().to_csv("data/optuna_results_usa3.csv")

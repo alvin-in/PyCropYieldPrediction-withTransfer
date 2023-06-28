@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import copy
 import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 
 import wandb
 from torch.utils.tensorboard import SummaryWriter
@@ -91,7 +92,8 @@ class TransferBase:
             bss_k=1,
             delta=0,
             delta_w_att=0,
-            multi_hyp=None
+            multi_hyp=None,
+            kfold=False
     ):
         """
         Train the models. Note that multiple models are trained: as per the paper, a model
@@ -227,6 +229,7 @@ class TransferBase:
                         delta,
                         delta_w_att,
                         ret,
+                        kfold
                     )
 
                     title = 'pred_and_true-' + 'run' + str(run_number) + '_year_' + str(pred_year)
@@ -321,6 +324,7 @@ class TransferBase:
             delta,
             delta_w_att,
             ret,
+            kfold=False
     ):
         """
         Train one model on one year of data, and then save the model predictions.
@@ -345,36 +349,138 @@ class TransferBase:
         )
 
         if ret:
-            train_indices, test_indices = train_test_split(
-                range(total_size),
-                test_size=val_size
-            )
+            if not kfold:
+                train_indices, test_indices = train_test_split(
+                    range(total_size),
+                    test_size=val_size
+                )
 
-            train_dataset = Subset(TensorDataset(train_data.images, train_data.yields), train_indices)
-            val_dataset = Subset(TensorDataset(train_data.images, train_data.yields), test_indices)
+                train_dataset = Subset(TensorDataset(train_data.images, train_data.yields), train_indices)
+                val_dataset = Subset(TensorDataset(train_data.images, train_data.yields), test_indices)
 
-            # train_dataset, val_dataset = random_split(train_data, [train_size, val_size])
+                # train_dataset, val_dataset = random_split(train_data, [train_size, val_size])
 
-            train_scores, val_scores = self._train(
-                train_dataset,
-                val_dataset,
-                train_steps,
-                batch_size,
-                starter_learning_rate,
-                weight_decay,
-                l1_weight,
-                patience,
-                predict_year,
-                run_number,
-                learn_rate_decay,
-                sp_weight,
-                l2_sp_beta,
-                bss,
-                bss_k,
-                delta,
-                delta_w_att,
-                ret,
-            )
+                train_scores, val_scores = self._train(
+                    train_dataset,
+                    val_dataset,
+                    train_steps,
+                    batch_size,
+                    starter_learning_rate,
+                    weight_decay,
+                    l1_weight,
+                    patience,
+                    predict_year,
+                    run_number,
+                    learn_rate_decay,
+                    sp_weight,
+                    l2_sp_beta,
+                    bss,
+                    bss_k,
+                    delta,
+                    delta_w_att,
+                    ret,
+                )
+            else:   # using a 10-fold. This implies
+                kf = KFold(n_splits=10, random_state=42, shuffle=True)
+                kf.get_n_splits(X=range(total_size))
+
+                if self.gp is not None:
+                    all_results = (0, 0, 0, 0, 0, 0)
+                else:
+                    all_results = (0, 0, 0)
+
+                for i, (train_indices, test_indices) in enumerate(kf.split(X=range(total_size))):
+
+                    union = set(train_indices) & set(test_indices)  # temporarily for testings purposes
+                    if len(union) > 0:
+                        print(union)
+                        exit()
+
+                    train_dataset = Subset(TensorDataset(train_data.images, train_data.yields), train_indices)
+                    val_dataset = Subset(TensorDataset(train_data.images, train_data.yields), test_indices)
+
+                    # train_dataset, val_dataset = random_split(train_data, [train_size, val_size])
+
+                    train_scores, val_scores = self._train(
+                        train_dataset,
+                        val_dataset,
+                        train_steps,
+                        batch_size,
+                        starter_learning_rate,
+                        weight_decay,
+                        l1_weight,
+                        patience,
+                        predict_year,
+                        run_number,
+                        learn_rate_decay,
+                        sp_weight,
+                        l2_sp_beta,
+                        bss,
+                        bss_k,
+                        delta,
+                        delta_w_att,
+                        ret,
+                    )
+
+                    pdts = pd.DataFrame(train_scores)
+                    pdvs = pd.DataFrame(val_scores)
+                    wandb.log({"train_loss" + str(predict_year): pdts})
+                    wandb.log({"val_loss" + str(predict_year): pdvs})
+
+                    results = self._predict_opt2(train_data, train_indices, test_indices, batch_size)#
+
+                    model_information = {
+                        "state_dict": self.model.state_dict(),
+                        "val_loss": val_scores["loss"],
+                        "train_loss": train_scores["loss"],
+                    }
+                    for key in results:
+                        model_information[key] = results[key]
+
+                    # finally, get the relevant weights for the Gaussian Process
+                    model_weight = self.model.state_dict()[self.model_weight]
+                    model_bias = self.model.state_dict()[self.model_bias]
+
+                    if self.model.state_dict()[self.model_weight].device != "cpu":
+                        model_weight, model_bias = model_weight.cpu(), model_bias.cpu()
+
+                    model_information["model_weight"] = model_weight.numpy()
+                    model_information["model_bias"] = model_bias.numpy()
+
+                    if self.gp is not None:
+                        print("Running Gaussian Process!")
+                        gp_pred = self.gp.run(
+                            model_information["train_feat"],
+                            model_information["test_feat"],
+                            model_information["train_loc"],
+                            model_information["test_loc"],
+                            model_information["train_years"],
+                            model_information["test_years"],
+                            model_information["train_real"],
+                            model_information["model_weight"],
+                            model_information["model_bias"],
+                        )
+                        model_information["test_pred_gp"] = gp_pred.squeeze(1)
+
+                    # print(model_information)
+
+                    filename = f'{predict_year}_{run_number}_{time}_{"gp" if (self.gp is not None) else ""}.pth.tar'
+                    torch.save(model_information, self.savedir / filename)
+
+                    results = self.analyze_results(
+                        model_information["test_real"],
+                        model_information["test_pred"],
+                        model_information["test_pred_gp"] if self.gp is not None else None,
+                    )
+
+                    for j in range(len(results)):
+                        all_results[j] += results[j]
+
+                for j in range(len(all_results)):
+                    all_results[j] /= 10
+
+                return all_results
+
         else:
             train_dataset, val_dataset = random_split(
                 TensorDataset(train_data.images, train_data.yields), (train_size, val_size)
