@@ -13,7 +13,7 @@ from collections import defaultdict, namedtuple
 from tqdm import tqdm
 from datetime import datetime
 from .gp_new import GaussianProcess  # gp_new für RBF-Kernel
-from .loss import l1_l2_loss, l2_sp_loss
+from .loss import l1_l2_loss
 from torch import nn
 import matplotlib.pyplot as plt
 import copy
@@ -189,13 +189,20 @@ class TransferBase:
                                     df[df['year'] == pred_year]['learn_rate_decay2'].values[0]]
                 # num_runs = df[df['year'] == pred_year]['num_runs']
                 train_steps = df[df['year'] == pred_year]['train_steps'].values[0]
-                # weight_decay = df[df['year'] == pred_year].weight_decay
+                starter_learning_rate = df[df['year'] == pred_year]['learning_rate'].values[0]
+                weight_decay = df[df['year'] == pred_year]['weighty_decay'].values[0]
                 # l1_weight = df[df['year'] == pred_year].l1_weight
                 # patience = df[df['year']==pred_year].patience
                 # freeze = df[df['year']==pred_year].freeze
-                # sp_weight = df[df['year'] == pred_year].sp_weight
-                # l2_sp_beta = df[df['year'] == pred_year].l2_sp_beta
+                sp_weight = df[df['year'] == pred_year]['sp_weight'].values[0]
+                l2_sp_beta = df[df['year'] == pred_year]['l2_sp_beta'].values[0]
                 bss = df[df['year'] == pred_year]['bss'].values[0]
+                # self.gp.sigma = df[df['year'] == pred_year]['sigma'].values[0]
+                # self.gp.r_loc = df[df['year'] == pred_year]['r_loc'].values[0]
+                # self.gp.r_year = df[df['year'] == pred_year]['r_year'].values[0]
+                # self.gp.sigma_e = df[df['year'] == pred_year]['sigma_e'].values[0]
+                # self.gp.sigma_b = df[df['year'] == pred_year]['sigma_b'].values[0]
+                # self.gp.nu
                 # bss_k = df[df['year'] == pred_year].bss_k
 
             for run_number in range(1, num_runs + 1):
@@ -247,11 +254,11 @@ class TransferBase:
                         # wandb.log({"rmse_gp": rmse_gp, "me_gp": me_gp}, step=pred_year)
                     else:
                         rmse, me, r_sq = results
-                    if self.gp is not None and ret:
-                        if rmse_gp > 8:
-                            raise optuna.TrialPruned()
-                    elif ret and rmse > 8:
-                        raise optuna.TrialPruned()
+                    #if self.gp is not None and ret:
+                    #    if rmse_gp > 6:
+                    #        raise optuna.TrialPruned()
+                    #elif ret and rmse > 8:
+                    #    raise optuna.TrialPruned()
                     rmse_list.append(rmse)
                     me_list.append(me)
                     r_sq_list.append(r_sq)
@@ -296,7 +303,7 @@ class TransferBase:
         wandb.log({"results": results_df})
         results_df.to_csv(self.savedir / f"{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv", index=False)
         if ret:
-            return mean_rmse_gp, mean_r_sq_gp   # mean_rmse, mean_r_sq
+            return mean_rmse, mean_r_sq   # mean_rmse, mean_r_sq
 
     def _run_1_year(
             self,
@@ -390,6 +397,7 @@ class TransferBase:
                 all_results = None
 
                 for i, (train_indices, test_indices) in enumerate(kf.split(X=range(total_size))):
+                    self.reinitialize_model(predict_year=predict_year, time=time, freeze=freeze, us_init=us_init)
 
                     union = set(train_indices) & set(test_indices)  # temporarily for testings purposes
                     if len(union) > 0:
@@ -472,6 +480,9 @@ class TransferBase:
                         model_information["test_pred"],
                         model_information["test_pred_gp"] if self.gp is not None else None,
                     )
+
+                    #if results[0] > 8:
+                    #    raise optuna.TrialPruned()
 
                     if all_results is None:
                         all_results = results
@@ -1007,8 +1018,8 @@ class TransferBase:
         - turns the numpy arrays into tensors
         - removes excess months, if monthly predictions are being made
         """
-        # years = years[years > predict_year - 6]
-        train_idx = np.nonzero(predict_year > years)[0]
+        train_idx = np.nonzero(years < predict_year)[0]
+        # train_idx = np.nonzero((predict_year > years) & (predict_year - 4 < years))[0]
         test_idx = np.nonzero(years == predict_year)[0]
 
         train_images, test_images = self._normalize(images[train_idx], images[test_idx])

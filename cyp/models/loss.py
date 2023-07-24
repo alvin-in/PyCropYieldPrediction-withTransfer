@@ -96,36 +96,3 @@ def l1_l2_loss(pred, true, l1_weight, scores_dict, l2_sp_weight=0, l2_sp_beta=0,
     scores_dict["loss"].append(loss.item())
 
     return loss, scores_dict
-
-
-def l2_sp_loss(pred, true, model, sp_model, scores_dict):
-    """
-    Regularized MSE loss; l2 loss with l1 loss too.
-
-    Parameters
-    ----------
-    pred: torch.floatTensor
-        The model predictions
-    true: torch.floatTensor
-        The true values
-    model: torch.nn.Module
-        TCurrent Model.
-    sp_model: torch.nn.Module
-        The source (starting point) model for L2-SP regularization
-    scores_dict: defaultdict(list)
-        A dict to which scores can be appended.
-
-    Returns
-    ----------
-    loss: the regularized mse loss
-    """
-    loss = F.mse_loss(pred, true)
-
-    # sp = tllib.regularization.SPRegularization(sp_model.convblocks, model.convblocks)
-    sp = tllib.regularization.SPRegularization(sp_model.dense_layers, model.dense_layers)
-    loss += sp()
-
-    scores_dict["l2"].append(loss.item())
-    scores_dict["loss"].append(loss.item())
-
-    return loss, scores_dict

@@ -83,16 +83,18 @@ class ConvModel(ModelBase):
             device,
         )
 
-    def reinitialize_model(self, time=None):
+    def reinitialize_model(self, time=None, dropout=None):
 
         # the only thing which changes here is the time value, since this affects the
         # size of the first dense layer.
 
         if time is None:
             time = self.time
+        if dropout is None:
+            dropout = self.dropout
         model = ConvNet(
             in_channels=self.in_channels,
-            dropout=self.dropout,
+            dropout=dropout,
             dense_features=self.dense_features,
             time=time,
         )

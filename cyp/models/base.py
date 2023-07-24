@@ -136,6 +136,8 @@ class ModelBase:
         else:
             times = range(10, 31, 4)
 
+        dropout = None
+
         wandb.define_metric("years")
 
         if multi_hyp is not None:
@@ -148,7 +150,8 @@ class ModelBase:
                 #                     df[df['year'] == pred_year].learn_rate_decay2]
                 # num_runs = df[df['year'] == pred_year].num_runs
                 train_steps = df[df['year'] == pred_year]['train_steps'].values[0]
-                weight_decay = df[df['year'] == pred_year]['weight_decay'].values[0]
+                starter_learning_rate = df[df['year'] == pred_year]['learning_rate'].values[0]
+                weight_decay = df[df['year'] == pred_year]['weighty_decay'].values[0]
                 # l1_weight = df[df['year'] == pred_year].l1_weight
                 # patience = df[df['year']==pred_year].patience
                 # freeze = df[df['year']==pred_year].freeze
@@ -156,7 +159,8 @@ class ModelBase:
                 # l2_sp_beta = df[df['year'] == pred_year].l2_sp_beta
                 # bss = df[df['year'] == pred_year].bss
                 # bss_k = df[df['year'] == pred_year].bss_k
-                patience = df[df['year'] == pred_year]['patience'].values[0]
+                # patience = df[df['year'] == pred_year]['patience'].values[0]
+                dropout = df[df['year'] == pred_year]['dropout'].values[0]
 
             for run_number in range(1, num_runs + 1):
                 for time in times:
@@ -180,7 +184,8 @@ class ModelBase:
                         l1_weight,
                         patience,
                         ret,
-                        kfold
+                        kfold,
+                        dropout
                     )
 
                     years_list.append(pred_year)
@@ -262,7 +267,8 @@ class ModelBase:
             l1_weight,
             patience,
             ret,
-            kfold=False
+            kfold=False,
+            dropout=None
     ):
         """
         Train one model on one year of data, and then save the model predictions.
@@ -276,7 +282,7 @@ class ModelBase:
 
         # reinitialize the model, since self.model may be trained multiple
         # times in one call to run()
-        self.reinitialize_model(time=time)
+        self.reinitialize_model(time=time, dropout=dropout)
 
         total_size = train_data.images.shape[0]
         # "Learning rates and stopping criteria are tuned on a held-out
@@ -319,6 +325,7 @@ class ModelBase:
                 all_results = None
 
                 for i, (train_indices, test_indices) in enumerate(kf.split(X=range(total_size))):
+                    self.reinitialize_model(time=time)
 
                     union = set(train_indices) & set(test_indices)  # temporarily for testings purposes
                     if len(union) > 0:
@@ -391,6 +398,9 @@ class ModelBase:
                         model_information["test_pred"],
                         model_information["test_pred_gp"] if self.gp is not None else None,
                     )
+
+                    if results[0] > 8:
+                        raise optuna.TrialPruned()
 
                     if all_results is None:
                         all_results = results
@@ -864,6 +874,7 @@ class ModelBase:
         - removes excess months, if monthly predictions are being made
         """
         train_idx = np.nonzero(years < predict_year)[0]
+        # train_idx = np.nonzero((predict_year > years) & (predict_year - 4 < years))[0]
         test_idx = np.nonzero(years == predict_year)[0]
 
         train_images, test_images = self._normalize(images[train_idx], images[test_idx])
@@ -942,5 +953,5 @@ class ModelBase:
             return rmse, me, rmse_gp, me_gp, r_sq, r_sq_gp
         return rmse, me, r_sq
 
-    def reinitialize_model(self, time=None):
+    def reinitialize_model(self, time=None, dropout=None):
         raise NotImplementedError

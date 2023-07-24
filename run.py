@@ -166,18 +166,18 @@ class RunTask:
     @staticmethod
     def train_cnn(
             cleaned_data_path=Path("I:/US-SAT-DS/img_output2020"),  # img_output2000"),
-            dropout=0.324,  # 0.295111873921675,
+            dropout=0.43356673510426585,    # 0.324,  # 0.295111873921675,
             dense_features=None,
-            savedir=Path("data/us_with2020_firstmultihyp"),
+            savedir=Path("data/us_with2020_uncleanabs32"),
             times="all",  # "all",
             pred_years=range(2015, 2021),
             num_runs=4,
-            train_steps=22050,  # 23000,
+            train_steps=46000,  # 22050,  # 23000,
             batch_size=32,
-            starter_learning_rate=0.008,  # 0.00690285122948098,
+            starter_learning_rate=0.009955851899640822,  # 0.008,  # 0.00690285122948098,
             weight_decay=0,
             l1_weight=0,
-            patience=10,  # 44,
+            patience=29,   # 10,  # 44,
             use_gp=True,
             sigma=1,
             r_loc=0.5,
@@ -185,7 +185,7 @@ class RunTask:
             sigma_e=0.32,
             sigma_b=0.01,
             device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
-            multi_hyp=Path("data/out_hyp_us.csv")
+            multi_hyp=None  # Path("data/out_hyp_us.csv")
     ):
         """
         Train a CNN model
@@ -292,16 +292,16 @@ class RunTask:
     def train_trans_cnn(
             cleaned_data_path=Path("data/arg_im_out_with2020"),
             second_hist_path=None,  # Path("data/img_output/histogram_all_full.npz"),
-            dropout=0.5,
+            dropout=0.5,    # 0.5,
             dense_features=None,
-            savedir=Path("data/arg_models_first_multi_hyp"),
+            savedir=Path("data/arg_models"),
             times="all",
-            pred_years=range(2015, 2021),
+            pred_years=range(2018, 2021),
             num_runs=4,
-            train_steps=25000,
+            train_steps=13000,
             batch_size=32,
-            starter_learning_rate=1e-4,  # 0.001,     # 1e-4,
-            weight_decay=1,  # 0,
+            starter_learning_rate=0.00045528925275387013,  # 0.001,     # 1e-4,
+            weight_decay=1,
             l1_weight=0,
             patience=10,  # 20
             use_gp=True,
@@ -310,17 +310,17 @@ class RunTask:
             r_year=1.5,  # 1.584,     # 1.9723720455649654,  # 1.5,
             sigma_e=0.32,  # 0.025,    # 0.4256803798519013,     # 0.32,
             sigma_b=0.1,  # 0.02,    # 0.019183576228164204,   # 0.1,
-            nu=1.5,
+            nu=1.5,  # 1.5,
             device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
             freeze=4,  # 4,
-            us_init=True,  # True,
-            sp_weight=0,
-            l2_sp_beta=0,
-            bss=0.412,
-            bss_k=1,
+            us_init=False,  # True,
+            sp_weight=0.07206289256504506,    # 0,
+            l2_sp_beta=0.4151835669975107,   # 0,
+            bss=0.5510830677939436,  # 0.412,
+            bss_k=0,
             delta=0,
             delta_w_att=0,
-            multi_hyp=Path("data/out_hyp.csv")
+            multi_hyp=None  # Path("data/out_hyp.csv")
     ):
         wandb.init(project='crop_yield_prediction_8', config={"type": "Transfer_Learning",
                                                               "train_steps": train_steps,
@@ -361,7 +361,7 @@ class RunTask:
 
         # model.model.load_state_dict(
         #    torch.load(Path("H:\\BA\\pycrop-yield-prediction\\data\\models\\cnn\\2015_2_32_gp.pth.tar"))["state_dict"])
-        learn_rate_decay = [2000, 20000]  # [368, 11050]# [2000, 20000]   # 20000]
+        learn_rate_decay = [3379, 5769]  # [368, 11050]# [2000, 20000]   # 20000]
 
         model.run(
             histogram_path,
@@ -471,12 +471,12 @@ class RunTask:
                     dropout=0.5,  # trial.suggest_float("dropout", 0.2, 0.6),
                     dense_features=dense_features,
                     savedir=savedir,
-                    use_gp=True,
-                    sigma=sigma,  # trial.suggest_float("sigma", 0.5, 1.5),  # sigma,
-                    r_loc=r_loc,  # trial.suggest_float("r_loc", 0.3, 0.7),  # r_loc,
+                    use_gp=None,
+                    sigma=sigma,    # trial.suggest_float("sigma", 0.5, 1.5),  # sigma,
+                    r_loc=r_loc,    # trial.suggest_float("r_loc", 0.3, 0.7),  # r_loc,
                     r_year=r_year,  # trial.suggest_float("r_year", 1, 2),  # r_year,
-                    sigma_e=sigma_e,  # trial.suggest_float("sigma_e", 0, 1),  # sigma_e,
-                    sigma_b=sigma_b,  # trial.suggest_float("sigma_b", 0, 0.1),  # sigma_b,
+                    sigma_e=sigma_e,    # trial.suggest_float("sigma_e", 0, 1),  # sigma_e,
+                    sigma_b=sigma_b,    # trial.suggest_float("sigma_b", 0, 0.1),  # sigma_b,
                     nu=nu,  # trial.suggest_float("nu", 0.5, 15, step=0.5),
                     device=device,
                 )
@@ -502,14 +502,14 @@ class RunTask:
                     batch_size=32,
                     starter_learning_rate=trial.suggest_float("learning_rate", 1e-5, 1e-2),
                     learn_rate_decay=learn_rate_decay,
-                    weight_decay=1,  # trial.suggest_float("weighty_decay", 0, 1),
+                    weight_decay=trial.suggest_float("weighty_decay", 0, 1),
                     l1_weight=0,  # trial.suggest_int("l1_weights", 0, 1),
                     patience=10,  # trial.suggest_int("patience", 0, 50),
-                    freeze=4,  # trial.suggest_int("freeze", 0, 6),
+                    freeze=trial.suggest_int("freeze", 3, 5),
                     us_init=True,  # trial.suggest_int("us-init", 0, 1),
                     ret=True,
-                    sp_weight=0,  # trial.suggest_float("sp_weight", 0, 1),
-                    l2_sp_beta=0,  # trial.suggest_float("l2_sp_beta", 0, 1),
+                    sp_weight=trial.suggest_float("sp_weight", 0, 1),
+                    l2_sp_beta=trial.suggest_float("l2_sp_beta", 0, 1),
                     bss=trial.suggest_float("bss", 0, 1),  # 0.412,  # trial.suggest_float("bss", 0, 1),
                     bss_k=1,  # 1     # trial.suggest_int("bss_k", 0, 32)
                     kfold=True
@@ -892,9 +892,9 @@ class RunTask:
             second_hist_path=None,  # Path("data/img_output/histogram_all_full.npz"),
             dropout=0.5,
             dense_features=None,
-            savedir=Path("data/matern_long_5yitr"),
+            savedir=Path("data/arg_hyp_clean_wot"),
             times="all",
-            pred_years=range(2016, 2019),
+            pred_years=range(2015, 2018),
             num_runs=4,
             train_steps=25000,
             batch_size=32,
@@ -932,16 +932,16 @@ class RunTask:
         def objective(trial):
             model = TransConvModel(
                 in_channels=9,
-                dropout=0.5,  # trial.suggest_float("dropout", 0.2, 0.6),
+                dropout=0.5,    # trial.suggest_float("dropout", 0.2, 0.6),
                 dense_features=dense_features,
                 savedir=savedir,
                 use_gp=True,
-                sigma=trial.suggest_float("sigma", 0.5, 1.5),  # sigma,
-                r_loc=trial.suggest_float("r_loc", 0.3, 0.7),  # r_loc,
-                r_year=trial.suggest_float("r_year", 1, 2),  # r_year,
-                sigma_e=trial.suggest_float("sigma_e", 0, 1),  # sigma_e,
-                sigma_b=trial.suggest_float("sigma_b", 0, 0.1),  # sigma_b,
-                nu=trial.suggest_float("nu", 0.5, 15, step=0.5),
+                sigma=sigma,    # trial.suggest_float("sigma", 0.5, 1.5),  # sigma,
+                r_loc=r_loc,    # trial.suggest_float("r_loc", 0.3, 0.7),  # r_loc,
+                r_year=r_year,  # trial.suggest_float("r_year", 1, 2),  # r_year,
+                sigma_e=sigma_e,    # trial.suggest_float("sigma_e", 0, 1),  # sigma_e,
+                sigma_b=sigma_b,    # trial.suggest_float("sigma_b", 0, 0.1),  # sigma_b,
+                nu=nu,  # trial.suggest_float("nu", 0.5, 15, step=0.5),
                 device=device,
             )
 
@@ -956,37 +956,37 @@ class RunTask:
             # model.model.load_state_dict(
             #    torch.load(Path("H:\\BA\\pycrop-yield-prediction\\data\\models\\cnn\\2015_2_32_gp.pth.tar"))["state_dict"])
 
-            learn_rate_decay = [trial.suggest_int("learn_rate_decay1", 200, 3000),
-                                trial.suggest_int("learn_rate_decay2", 3000, 20000)]
+            learn_rate_decay = [trial.suggest_int("learn_rate_decay1", 1000, 4000),
+                                trial.suggest_int("learn_rate_decay2", 4000, 20000)]
             # learn_rate_decay = [2000, 20000]   # 20000]
 
             rmse, rsq = model.run(
                 histogram_path,
                 second_hist_path,
                 times,
-                pred_years=range(2016, 2019),
+                pred_years=pred_years,
                 num_runs=1,
                 train_steps=25000,  # trial.suggest_int("train_steps", 5000, 30000, 1000),
                 batch_size=32,
                 starter_learning_rate=trial.suggest_float("learning_rate", 1e-5, 1e-2),
                 learn_rate_decay=learn_rate_decay,
-                weight_decay=1,  # trial.suggest_float("weighty_decay", 0, 1),
+                weight_decay=0,     # trial.suggest_float("weighty_decay", 0, 1),
                 l1_weight=0,  # trial.suggest_int("l1_weights", 0, 1),
-                patience=trial.suggest_int("patience", 0, 50),
-                freeze=4,  # trial.suggest_int("freeze", 0, 6),
+                patience=10,    # trial.suggest_int("patience", 0, 50),
+                freeze=4,
                 us_init=True,  # trial.suggest_int("us-init", 0, 1),
                 ret=True,
-                sp_weight=0,  # trial.suggest_float("sp_weight", 0, 1),
-                l2_sp_beta=0,  # trial.suggest_float("l2_sp_beta", 0, 1),
-                bss=0.412,  # trial.suggest_float("bss", 0, 1),
-                bss_k=0,  # 1     # trial.suggest_int("bss_k", 0, 32)
+                sp_weight=trial.suggest_float("sp_weight", 0, 1),
+                l2_sp_beta=trial.suggest_float("l2_sp_beta", 0, 1),
+                bss=trial.suggest_float("bss", 0, 1),
+                bss_k=1     # trial.suggest_int("bss_k", 0, 1)
             )
 
-            study.trials_dataframe().to_csv("data/check_matern2.csv")
-            joblib.dump(study, "data/check_matern2.pkl")
+            study.trials_dataframe().to_csv("data/arg_hyp_clean_all.csv")
+            joblib.dump(study, "data/arg_hyp_clean_all.pkl")
             return rmse, rsq
 
-        study.optimize(objective, n_trials=40)
+        study.optimize(objective, n_trials=30)
         # print('Number of finished trials:', len(study.trials))
         # print('Best trial:', study.best_trial.params)
         trial_w_best_rmse = max(study.best_trials, key=lambda t: t.values[1])
@@ -1006,17 +1006,17 @@ class RunTask:
         # fig2.show()
         # fig3 = optuna.visualization.plot_param_importances(study)
         # fig3.show()
-        joblib.dump(study, "data/check_matern2.pkl")
+        joblib.dump(study, "data/arg_hyp_clean_all.pkl")
         # vis_argentina.vis_arg(pred_years)
 
     @staticmethod
     def run_optuna_usa(
-            cleaned_data_path=Path("I:/US-SAT-DS/img_output2000"),
+            cleaned_data_path=Path("I:/US-SAT-DS/img_output2020"),
             dropout=0.5,
             dense_features=None,
-            savedir=Path("data/arg_models"),
+            savedir=Path("data/arg_models_"),
             times="all",
-            pred_years=range(2016, 2019),
+            pred_years=range(2015, 2018),
             num_runs=1,
             train_steps=25000,
             batch_size=32,
@@ -1127,18 +1127,18 @@ class RunTask:
                 num_runs=1,
                 train_steps=trial.suggest_int("train_steps", 10000, 50000, 1000),
                 batch_size=32,
-                starter_learning_rate=trial.suggest_float("learning_rate", 1e-6, 1e-2),
-                weight_decay=trial.suggest_int("weighty_decay", 0, 1),
+                starter_learning_rate=trial.suggest_float("learning_rate", 1e-5, 1e-2),
+                weight_decay=0,     # trial.suggest_int("weighty_decay", 0, 1),
                 l1_weight=0,  # trial.suggest_int("l1_weight", 0, 1),
-                patience=trial.suggest_int("pateince", 0, 60),
+                patience=trial.suggest_int("patience", 0, 50),
                 ret=True
             )
 
-            study.trials_dataframe().to_csv("data/optuna_results_usa3.csv")
+            study.trials_dataframe().to_csv("data/optuna_results_usa_absunclean32.csv")
 
             return rmse
 
-        study.optimize(objective, n_trials=50)
+        study.optimize(objective, n_trials=30)
         print('Number of finished trials:', len(study.trials))
         print('Best trial:', study.best_trial.params)
         wandb.config = {'Best_Trial': study.best_trial.params}
