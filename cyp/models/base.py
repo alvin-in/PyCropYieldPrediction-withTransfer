@@ -6,7 +6,7 @@ import pandas as pd
 from collections import defaultdict, namedtuple
 from tqdm import tqdm
 from datetime import datetime
-from .gp import GaussianProcess
+from .gp_rbf import GaussianProcess
 from .loss import l1_l2_loss
 from sklearn.metrics import r2_score
 from sklearn.linear_model import LinearRegression
@@ -948,7 +948,7 @@ class ModelBase:
         if pred_gp is not None:
             rmse_gp = np.sqrt(np.mean((true - pred_gp) ** 2))
             me_gp = np.mean(true - pred_gp)
-            r_sq_gp = r2_score(true, pred)
+            r_sq_gp = r2_score(true, pred_gp)
             print(f"With GP: RMSE: {rmse_gp}, ME: {me_gp}, r2: {r_sq_gp}")
             return rmse, me, rmse_gp, me_gp, r_sq, r_sq_gp
         return rmse, me, r_sq

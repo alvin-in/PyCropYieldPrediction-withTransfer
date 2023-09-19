@@ -12,7 +12,7 @@ import pandas as pd
 from collections import defaultdict, namedtuple
 from tqdm import tqdm
 from datetime import datetime
-from .gp_new import GaussianProcess  # gp_new für RBF-Kernel
+from .gp_rbf import GaussianProcess
 from .loss import l1_l2_loss
 from torch import nn
 import matplotlib.pyplot as plt
