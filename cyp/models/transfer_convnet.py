@@ -111,7 +111,7 @@ class TransConvModel(TransferBase):
         if us_init:
             model2 = copy.deepcopy(self.model)
             model2.load_state_dict(torch.load(Path(
-                "H:\\BA\\pycrop-yield-prediction\\data\\" + init_model + "\\cnn\\"
+                "data\\" + init_model + "\\cnn\\"
                 + str(predict_year) + "_1_32_gp.pth.tar"
             ))["state_dict"])
             #model.load_state_dict(torch.load(Path(
@@ -127,7 +127,7 @@ class TransConvModel(TransferBase):
                 freeze = 6
             model2 = copy.deepcopy(self.model)
             model2.load_state_dict(torch.load(Path(
-                "H:\\BA\\pycrop-yield-prediction\\data\\" + init_model + "\\cnn\\"
+                "data\\" + init_model + "\\cnn\\"
                 + str(predict_year) + "_1_32_gp.pth.tar"
             ))["state_dict"])
             # hier eigentlich model2

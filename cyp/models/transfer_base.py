@@ -637,7 +637,7 @@ class TransferBase:
         sp_model.load_state_dict(torch.load(Path(
             # "H:\\BA\\pycrop-yield-prediction\\data\\usa_model_2000pix_81-337\\cnn\\"
             # + str(year) + "_1_32_gp.pth.tar"
-            "H:\\BA\\pycrop-yield-prediction\\data\\us_with2020\\cnn\\"
+            "data\\us_with2020\\cnn\\"
             + str(year) + "_1_32_gp.pth.tar"
         ))["state_dict"])
 
@@ -645,7 +645,7 @@ class TransferBase:
         delta_model.load_state_dict(torch.load(Path(
             # "H:\\BA\\pycrop-yield-prediction\\data\\arg_model_l2fe\\cnn\\"
             # + str(year) + "_1_32_gp.pth.tar"
-            "H:\\BA\\pycrop-yield-prediction\\data\\us_with2020\\cnn\\"
+            "data\\us_with2020\\cnn\\"
             + str(year) + "_1_32_gp.pth.tar"
         ))["state_dict"])
         channel_weights = []
