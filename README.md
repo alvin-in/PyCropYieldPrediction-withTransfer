@@ -85,6 +85,7 @@ The variable `YIELDFILE` in the head of the script can be changed to the name of
   ```sh
   python run.py train_trans_cnn
   ```
+To change the referenced US Model, the paths within models/transfer_base.py and models/transfer_convnet.py must be adjusted.
 
 # Setup
 To set up the environment, the package manager Anaconda with Python 3.7 is required. 
@@ -96,7 +97,7 @@ to create an environment named `crop_yield_prediction` and run
   ```sh
   conda activate crop_yield_prediction
   ```
-to activate the envoironment. <br>
+to activate the environment. <br>
 Additionally you need to sign up to [Google Earth Engine](https://developers.google.com/earth-engine/)
 and authenticate yourself within the `crop_yield_prediction` environment by runnning
   ```sh
