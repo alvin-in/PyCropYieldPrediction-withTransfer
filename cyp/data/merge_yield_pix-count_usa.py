@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-PATH = "/pycrop-yield-prediction/data"
-YIELDFILE = "abs_yield_usa.csv"
+PATH = "data"
+YIELDFILE = "yield_data.csv"
 COVERPIX = "usa_pix_counter.csv"
-OUTFIlE = "abs_usa_yield_with_pix.csv"
+OUTFIlE = "usa_yield_with_pix2.csv"
 cols = ["Program", "Year", "Period", "Week Ending", "Geo Level", "State", "State ANSI", "Ag District",
         "Ag District Code", "County", "County ANSI", "Zip Code", "Region", "watershed_code", "Watershed", "Commodity",
         "Data Item", "Domain", "Domain Category", "Value", "CV (%)", "mask_field_pixel"
@@ -15,7 +15,7 @@ def isNaN(num):
     return num != num
 
 
-yield_csv = pd.read_csv(PATH + "\\" + YIELDFILE)
+yield_csv = pd.read_csv(PATH + "/" + YIELDFILE)
 yield_np = yield_csv.to_numpy()
 
 cov_pix_np = pd.read_csv(PATH + "\\" + COVERPIX).to_numpy()
@@ -37,4 +37,5 @@ yield_np = np.hstack((yield_np, covpix.reshape(-1, 1)))
 # yield_np = np.hstack((yield_np, relative_covpix.reshape(-1, 1)))
 
 yield_df = pd.DataFrame(yield_np, columns=cols)
+yield_df = yield_df[yield_df['mask_field_pixel'] > 1999]
 yield_df.to_csv(PATH + "\\" + OUTFIlE)

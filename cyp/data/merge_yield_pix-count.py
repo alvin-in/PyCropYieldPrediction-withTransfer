@@ -4,8 +4,8 @@ import pandas as pd
 
 PATH = "/pycrop-yield-prediction/data"
 YIELDFILE = "soja-serie-1969-2019_clean_bu.csv"
-COVERPIX = "year_pix_counter(2).csv"
-OUTFIlE = "soja-serie-1969-2019(257).csv"
+COVERPIX = "arg_pix_counter.csv"
+OUTFIlE = "yield_data_with2020.csv"
 cols = ["cultivo_nombre", "anio", "campania", "provincia_nombre", "provincia_id", "departamento_nombre",
         "departamento_id", "superficie_sembrada_ha", "superficie_cosechada_ha", "produccion_tm", "redimiento_kgxha",
         "redimiento_buxacre", "mask_field_pixel"

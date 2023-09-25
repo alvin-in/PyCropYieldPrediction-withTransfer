@@ -13,9 +13,8 @@ from .utils import load_clean_yield_data as load
 from .utils import get_tif_files
 
 
-class DataAnalyse:
-    """Take the exported, downloaded data
-    and clean it.
+class YieldDataCleansing:
+    """Take the exported, downloaded data and clean it.
 
     Specifically:
     - split the image collections into years
@@ -25,13 +24,13 @@ class DataAnalyse:
     Parameters
     -----------
     mask_path: pathlib Path, default=Path('data/crop_yield-data_mask')
-        Path from whihc
     """
 
     def __init__(
             self,
-            mask_path=Path("H:/BA/pycrop-yield-prediction/data/crop_yield-data_mask")
-            # mask_path=Path("I:/US-SAT-DS/crop_yield-data_mask")      # Path("data/cover")  # USA: Path("data/crop_yield-data_mask")
+            mask_path=Path("data/crop_yield-data_mask")
+            # mask_path=Path("I:/US-SAT-DS/crop_yield-data_mask")
+            # Path("data/cover")  # USA: Path("data/crop_yield-data_mask")
     ):
         self.mask_path = mask_path
 
@@ -39,7 +38,7 @@ class DataAnalyse:
 
         self.pix_count = []
 
-    def process(self, num_years=12):
+    def process(self, num_years=11, out='usa_yield_with_pix2'):
         """
         Process all the data.
 
@@ -47,12 +46,8 @@ class DataAnalyse:
         ----------
         num_years: int, default=14
             How many years of data to create.
-        delete_when_done: boolean, default=False
-            Whether or not to delete the original .tif files once the .npy array
-            has been generated.
-        checkpoint: boolean, default=True
-            Whether or not to skip tif files which have already had their .npy arrays
-            written
+        out: String
+            Name of resulting csv file
         """
         for filename in self.tif_files:
             process_county(
@@ -68,7 +63,7 @@ class DataAnalyse:
         #    mask_pix.append([key, value])
         # USA:
         pd.DataFrame(self.pix_count, columns=['anio', 'id', 'pix_count']).to_csv(
-            "H:\\BA\\pycrop-yield-prediction\\data\\arg_new_pix_count.csv", index=False)
+            "data\\"+out+".csv", index=False)
         # pd.DataFrame(self.pix_count).to_csv("H:\\BA\\pycrop-yield-prediction\\data\\year_pix_counter(2).csv")
 
 

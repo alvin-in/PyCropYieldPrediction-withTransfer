@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from pathlib import Path
 
-from cyp.data import MODISExporter, DataCleaner, Engineer, ArgDataCleaner, Arg_Engineer, DataAnalyse
+from cyp.data import MODISExporter, DataCleaner, Engineer, ArgDataCleaner, Arg_Engineer, YieldDataCleansing
 from cyp.models import ConvModel, RNNModel, TransConvModel
 from cyp.analysis import counties_plot, vis_argentina
 
@@ -60,11 +60,11 @@ class RunTask:
 
     @staticmethod
     def process(
-            mask_path="I:/US-SAT-DS/crop_yield-data_mask",
-            temperature_path="I:/US-SAT-DS/crop_yield-data_temperature",
-            image_path="I:/US-SAT-DS/crop_yield-data_image",
-            yield_data_path="H:/BA/pycrop-yield-prediction/data/usa_yield_with_pix2.csv",
-            cleaned_data_path="I:/US-SAT-DS/img_output2020",
+            mask_path="data/crop_yield-data_mask",
+            temperature_path="data/crop_yield-data_temperature",
+            image_path="data/crop_yield-data_image",
+            yield_data_path="data/usa_yield_with_pix2.csv",
+            cleaned_data_path="data/img_output2020",
             multiprocessing=False,
             processes=4,
             parallelism=6,
@@ -126,7 +126,7 @@ class RunTask:
 
     @staticmethod
     def engineer(
-            cleaned_data_path="I:/US-SAT-DS/img_output2020",
+            cleaned_data_path="data/img_output2020",
             yield_data_path="data/usa_yield_with_pix2.csv",
             county_data_path="data/county_data.csv",
             num_bins=13,
@@ -165,7 +165,7 @@ class RunTask:
 
     @staticmethod
     def train_cnn(
-            cleaned_data_path=Path("I:/US-SAT-DS/img_output2020"),  # img_output2000"),
+            cleaned_data_path=Path("data/img_output2020"),  # img_output2000"),
             dropout=0.396786878766754,    # 0.43356673510426585,    # 0.324,  # 0.295111873921675,
             dense_features=None,
             savedir=Path("data/us_with2020_checkup2"),
@@ -864,25 +864,27 @@ class RunTask:
         )
 
     @staticmethod
-    def data_analyse(
-            mask_path="H:/BA/pycrop-yield-prediction/data/crop_yield-data_mask",  # "I:/US-SAT-DS/crop_yield-data_mask",
-            num_years=11,
+    def data_cleansing(
+            mask_path="data/crop_yield-data_mask",  # data/cover for Argentina
+            num_years=11,   # use +1 for Argentina
+            out_name="usa_pix_counter",     # 'arg_pix_counter' for Argentina
     ):
         """
-        Calculates pixel count per year for each departamento. Output is a yieldpixperyear.csv into data and can be
-        used to modify yield data.
+        Calculates pixel count per year for each county. Output is a csv into data and can be used to modify yield data.
 
         Parameters
         ----------
         mask_path: str, default='data/crop_yield-data_mask'
             Path from which the mask tif files get loaded
-        num_years: int, default=14
+        num_years: int, default=11
             How many years of data to create.
+        out_name: string
+            Name of resulting csv.
         """
         mask_path = Path(mask_path)
 
-        cleaner = DataAnalyse(mask_path)
-        cleaner.process(num_years=num_years)
+        cleaner = YieldDataCleansing(mask_path)
+        cleaner.process(num_years=num_years, out=out_name)
 
     @staticmethod
     def run_optuna(
