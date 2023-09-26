@@ -1,6 +1,6 @@
 # PyCropYieldPrediction-withTransfer
 An extension of [Gabriel Tseng's](https://github.com/gabrieltseng/pycrop-yield-prediction) PyTorch implementation of 
-[Jiaxuan You's](https://cs.stanford.edu/~ermon/papers/cropyield_AAAI17.pdf) Deep Gaussian Process with CNN for soybean crop forecasting in Argentina.
+[Jiaxuan You's](https://cs.stanford.edu/~ermon/papers/cropyield_AAAI17.pdf) Deep Gaussian Process built on a CNN for soybean crop forecasting in Argentina.
 In addition, code components from the work ["Deep Transfer Learning for Crop Yield Prediction with Remote Sensing Data"](https://github.com/AnnaXWang/deep-transfer-learning-crop-prediction)
 are used to export Argentine satellite data.
 
