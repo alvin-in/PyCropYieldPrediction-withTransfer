@@ -4,6 +4,21 @@ An extension of [Gabriel Tseng's](https://github.com/gabrieltseng/pycrop-yield-p
 In addition, code components from the work ["Deep Transfer Learning for Crop Yield Prediction with Remote Sensing Data"](https://github.com/AnnaXWang/deep-transfer-learning-crop-prediction)
 are used to export Argentine satellite data.
 
+The code was used to produce the results published in the publication "Leveraging Remote Sensing Data for Yield Prediction with Deep Transfer Learning". The document is open access and can be found at https://www.mdpi.com/1424-8220/24/3/770 . If you find our code helpful, please cite our work as follows:
+
+@Article{s24030770,
+AUTHOR = {Huber, Florian and Inderka, Alvin and Steinhage, Volker},
+TITLE = {Leveraging Remote Sensing Data for Yield Prediction with Deep Transfer Learning},
+JOURNAL = {Sensors},
+VOLUME = {24},
+YEAR = {2024},
+NUMBER = {3},
+ARTICLE-NUMBER = {770},
+URL = {https://www.mdpi.com/1424-8220/24/3/770},
+ISSN = {1424-8220},
+DOI = {10.3390/s24030770}
+}
+
 # Pipeline
 ## USA
 ### Exporting
