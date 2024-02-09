@@ -6,6 +6,7 @@ are used to export Argentine satellite data.
 
 The code was used to produce the results published in the publication "Leveraging Remote Sensing Data for Yield Prediction with Deep Transfer Learning". The document is open access and can be found at https://www.mdpi.com/1424-8220/24/3/770 . If you find our code helpful, please cite our work as follows:
 
+```
 @Article{s24030770,
 AUTHOR = {Huber, Florian and Inderka, Alvin and Steinhage, Volker},
 TITLE = {Leveraging Remote Sensing Data for Yield Prediction with Deep Transfer Learning},
@@ -18,6 +19,7 @@ URL = {https://www.mdpi.com/1424-8220/24/3/770},
 ISSN = {1424-8220},
 DOI = {10.3390/s24030770}
 }
+```
 
 # Pipeline
 ## USA
