@@ -32,10 +32,11 @@ to export the US satellite data into your Google Drive. You will need up to 165 
 The [Earth Engine Task Manager](https://code.earthengine.google.com/tasks) shows your ongoing tasks. This may take longer. 
 Once all the data has been exported to your Google Drive, you can drag the folders `crop_yield-data_image`, `crop_yield-data_mask` and 
 `crop_yield-data_temperature` into your local data folder ([Google Drive Desktop](https://www.google.com/intl/en/drive/download/) is recommended, 
-otherwise the data will be downloaded in a lot of ZIP files). 
+otherwise the data will be downloaded in a lot of ZIP files).
+The yield data can be downloaded from the [USDA](https://quickstats.nass.usda.gov/). Examples of the format can be found in the data directory.
 
 ### (Optional) Data Cleansing
-Our cleaned data are given in the data folder. If you want to use our data cleansing (>2000 cropland pixel) on your own data, you have to run 
+If you want to use our data cleansing (>2000 cropland pixel) on your own data, you have to run 
   ```sh
   python run.py data_cleansing
   ```
@@ -43,7 +44,7 @@ and
   ```sh
   python cyp/data/merge_yield_pix-count_usa.py
   ```
-Note here that the corresponding csv are addressed according to their column orders.
+Note here that the corresponding csv are addressed according to their column orders. The formatting of our data can be found in the data directory.
 
 ###  Preprocessing
   ```sh
@@ -76,6 +77,7 @@ The basic procedure in Argentina is the same, but in some places paths or names 
   ```sh
   python cyp/data/argentina_export.py
   ```
+The yield data can be downloaded from the [Ministerio de Agricultura](https://datosestimaciones.magyp.gob.ar/reportes.php?reporte=Estimaciones). Examples of the format can be found in the data directory.
 ### (Optional) Data Cleansing
   ```sh
   python run.py data_cleansing
