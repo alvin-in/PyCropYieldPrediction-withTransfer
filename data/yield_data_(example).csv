@@ -1,0 +1,3 @@
+Program,Year,Period,Week Ending,Geo Level,State,State ANSI,Ag District,Ag District Code,County,County ANSI,Zip Code,Region,watershed_code,Watershed,Commodity,Data Item,Domain,Domain Category,Value,CV (%)
+SURVEY,2021,YEAR,,COUNTY,ALABAMA,1,BLACK BELT,40,DALLAS,47,,,0,,SOYBEANS,"SOYBEANS - YIELD, MEASURED IN BU / ACRE",TOTAL,NOT SPECIFIED,12,4.2
+SURVEY,2021,YEAR,,COUNTY,ALABAMA,1,BLACK BELT,40,ELMORE,51,,,0,,SOYBEANS,"SOYBEANS - YIELD, MEASURED IN BU / ACRE",TOTAL,NOT SPECIFIED,34,13.5
