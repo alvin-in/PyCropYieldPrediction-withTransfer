@@ -1,22 +1,29 @@
 import geopandas as gpd
 import numpy
 import numpy as np
-import matplotlib.pyplot as plt
 import geemap
 import ee
 import torch
 from bs4 import BeautifulSoup
 from pathlib import Path
 import matplotlib as mpl
+import matplotlib.font_manager as font_manager
 import pandas as pd
 import csv
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import mapclassify
-import matplotlib.colors as colors
 
 # new
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+
+mpl.rcParams['font.family'] = 'serif'
+cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
+mpl.rcParams['font.serif'] = cmfont.get_name()
+mpl.rcParams['mathtext.fontset'] = 'cm'
+mpl.rcParams['axes.unicode_minus'] = False
+
+import matplotlib.pyplot as plt
 
 plt.style.use('seaborn')
 
@@ -117,17 +124,19 @@ def plot_map(pred_dict, gdf, title, ):
     # gdf.to_csv("H:\\BA\\pycrop-yield-prediction\\data\\asdf.csv")
 
     fig, ax = plt.subplots(1, 1)
+    # plt.rcParams["font.family"] = "CMU Serif"
     # divider = make_axes_locatable(ax)
     # cax = divider.append_axes("right", size="5%", pad=0.1)
     ax.set_axis_off()
     # , scheme='user_defined', classification_kwds={'bins': [1, 200000, 400000, 1300000, 2000000]}
 
     gdf.plot(column='pred2', ax=ax, cmap='RdPu', edgecolor="black", legend=True, scheme='user_defined',
-             missing_kwds={"color": "lightgrey", "edgecolor": "darkgrey", "hatch": "///", "label": "No data",
+             missing_kwds={"color": "lightgrey", "edgecolor": "darkgrey", "hatch": "", "label": "No data",
                            }, classification_kwds={'bins': [2000, 10000]})
     plt.rcParams.update({'font.size': 36})
-    plt.title('Average number of cropland pixel over the 11 years from 2010 to 2020')
+    # plt.title('Average number of cropland pixel over the 11 years from 2010 to 2020')
     plt.show()
+    # plt.savefig("C:/Users/alvin/Desktop/test.svg")
 
 
 def find_year_row(df, year):
